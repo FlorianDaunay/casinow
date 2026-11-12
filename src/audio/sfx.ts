@@ -1,32 +1,25 @@
 import { useProfile } from "@/store/profile";
+import { getAudio } from "./context";
 
 /**
  * Sound effects synthesized with the Web Audio API: no audio files to ship, and every sound
  * is slightly varied so repeated actions never feel mechanical.
  */
 
-let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let noiseBuffer: AudioBuffer | null = null;
 
 function audio(): { ctx: AudioContext; out: GainNode } | null {
   if (useProfile.getState().muted) return null;
-  if (!ctx) {
-    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!Ctor) return null;
-    ctx = new Ctor();
-    master = ctx.createGain();
+  const core = getAudio();
+  if (!core) return null;
+  if (!master) {
+    master = core.ctx.createGain();
     master.gain.value = 0.6;
-    // A touch of compression keeps stacked sounds from clipping.
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -14;
-    master.connect(comp).connect(ctx.destination);
-    noiseBuffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    master.connect(core.bus);
+    noiseBuffer = core.noise;
   }
-  if (ctx.state === "suspended") void ctx.resume();
-  return { ctx, out: master! };
+  return { ctx: core.ctx, out: master };
 }
 
 const vary = (value: number, amount = 0.06) => value * (1 + (Math.random() * 2 - 1) * amount);

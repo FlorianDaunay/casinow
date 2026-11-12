@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import { CURRENCY_LABEL, CurrencyIcon, type Currency } from "@/art/CurrencyIcon";
 import { navigate } from "@/app/router";
+import { music } from "@/audio/music";
 import { sfx } from "@/audio/sfx";
 import { useProfile } from "@/store/profile";
 import { useCountUp } from "./useCountUp";
@@ -20,24 +22,69 @@ function Counter({ currency }: { currency: Currency }) {
   );
 }
 
-function SoundToggle() {
-  const muted = useProfile((s) => s.muted);
-  const setMuted = useProfile((s) => s.setMuted);
+function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
   return (
-    <button
-      className="grid h-9 w-9 place-items-center rounded-pill border border-border text-accent transition hover:bg-surface-hover"
-      onClick={() => {
-        setMuted(!muted);
-        if (muted) setTimeout(() => sfx.tick(), 0);
-      }}
-      aria-label={muted ? "Activer le son" : "Couper le son"}
-      title={muted ? "Activer le son" : "Couper le son"}
-    >
-      <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" fillOpacity={0.15} />
-        {muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11" />}
-      </svg>
+    <button className="flex w-full items-center justify-between gap-6 py-2" onClick={onToggle} role="switch" aria-checked={on}>
+      <span className="label-deco text-text-secondary">{label}</span>
+      <span className={`relative h-5 w-9 rounded-pill transition ${on ? "bg-accent" : "bg-surface-hover"}`}>
+        <span className={`absolute top-0.5 h-4 w-4 rounded-pill bg-canvas transition-all ${on ? "left-[1.1rem]" : "left-0.5"}`} />
+      </span>
     </button>
+  );
+}
+
+/** Speaker button opening the music and sound-effect switches. */
+function SoundMenu() {
+  const { muted, musicOn, setMuted, setMusicOn } = useProfile();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("pointerdown", close);
+    return () => window.removeEventListener("pointerdown", close);
+  }, [open]);
+  const silent = muted && !musicOn;
+  return (
+    <div ref={ref} className="relative">
+      <button
+        className="grid h-9 w-9 place-items-center rounded-pill border border-border text-accent transition hover:bg-surface-hover"
+        onClick={() => setOpen(!open)}
+        aria-label="Son et musique"
+        aria-expanded={open}
+      >
+        <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" fillOpacity={0.15} />
+          {silent ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.8 7.8 0 0 1 0 11" />}
+        </svg>
+      </button>
+      {open && (
+        <div className="panel-deco absolute right-0 top-11 z-40 w-56 px-4 py-2">
+          <Switch
+            label="Musique"
+            on={musicOn}
+            onToggle={() => {
+              setMusicOn(!musicOn);
+              // This tap is the gesture that lets the audio start.
+              if (!musicOn) {
+                music.setEnabled(true);
+                music.start();
+              }
+            }}
+          />
+          <Switch
+            label="Effets"
+            on={!muted}
+            onToggle={() => {
+              setMuted(!muted);
+              if (muted) setTimeout(() => sfx.tick(), 0);
+            }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -69,7 +116,7 @@ export function TopBar({ back = false, title, full = false }: { back?: boolean; 
             <Counter currency="poussiere" />
             <Counter currency="sceaux" />
           </span>
-          <SoundToggle />
+          <SoundMenu />
         </div>
       </div>
     </div>

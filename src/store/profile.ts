@@ -18,13 +18,17 @@ export interface Stats {
 interface ProfileState {
   wallet: Record<Currency, number>;
   stats: Stats;
+  /** Sound effects off. */
   muted: boolean;
+  /** Background music on. */
+  musicOn: boolean;
   /** Takes `amount` of a currency; returns false (and changes nothing) if the balance is short. */
   spend: (currency: Currency, amount: number) => boolean;
   earn: (currency: Currency, amount: number) => void;
   recordRound: (round: { hands: number; won: number; blackjacks: number; net: number }) => void;
   takeHouseCredit: () => void;
   setMuted: (muted: boolean) => void;
+  setMusicOn: (on: boolean) => void;
 }
 
 export const useProfile = create<ProfileState>()(
@@ -33,6 +37,7 @@ export const useProfile = create<ProfileState>()(
       wallet: { jetons: STARTING_JETONS, poussiere: 0, sceaux: 0 },
       stats: { handsPlayed: 0, handsWon: 0, blackjacks: 0, biggestWin: 0 },
       muted: false,
+      musicOn: true,
       spend: (currency, amount) => {
         const { wallet } = get();
         if (amount < 0 || wallet[currency] < amount) return false;
@@ -61,6 +66,7 @@ export const useProfile = create<ProfileState>()(
         set({ wallet: { ...wallet, jetons: wallet.jetons + HOUSE_CREDIT } });
       },
       setMuted: (muted) => set({ muted }),
+      setMusicOn: (musicOn) => set({ musicOn }),
     }),
     { name: "casinow-profile", version: 1 }
   )
