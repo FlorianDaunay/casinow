@@ -1,4 +1,4 @@
-import type { CardDef, Emblem, Family, Power, Rarity, Table } from "./types";
+import type { CardDef, Emblem, Family, PlayableTable, Power, Rarity, Table } from "./types";
 
 /** Rules text of a power, as printed on the card. */
 export function describePower(power: Power): string {
@@ -21,6 +21,25 @@ export function describePower(power: Power): string {
         : `${power.uses} fois par visite, révèle la carte cachée du croupier.`;
     case "slot":
       return "Un emplacement d'atout de plus à chaque table.";
+    case "game-bonus": {
+      const where = {
+        douzaine: "sur les douzaines",
+        chance: "sur les chances simples",
+        plein: "sur les numéros pleins",
+        cascade: "des cascades",
+        free: "des tours gratuits",
+      } as const;
+      const game = power.game === "roulette" ? "à la roulette" : "aux machines";
+      return power.on ? `Les gains ${where[power.on]} augmentent de ${power.pct} %.` : `Les gains ${game} augmentent de ${power.pct} %.`;
+    }
+    case "zero-refund":
+      return `Rend ${power.pct} % des mises perdues quand le zéro tombe.`;
+    case "free-loss":
+      return power.uses === 1 ? "Une fois par visite, rembourse un tour de roue perdu." : `${power.uses} fois par visite, rembourse un tour de roue perdu.`;
+    case "wild-boost":
+      return "Les jokers apparaissent plus souvent.";
+    case "free-spin-every":
+      return `Un tour gratuit toutes les ${power.spins} parties.`;
     case "future":
       return power.text;
   }
@@ -31,6 +50,8 @@ type Row = [number, string, Family, Rarity, Emblem, Table, Power];
 const win = (pct: number, table: "blackjack" | "tout" = "tout"): Power => ({ kind: "win-bonus", pct, table });
 const bust = (pct: number): Power => ({ kind: "bust-refund", pct });
 const future = (text: string): Power => ({ kind: "future", text });
+const roulette = (pct: number, on?: "douzaine" | "chance" | "plein"): Power => ({ kind: "game-bonus", game: "roulette", pct, on });
+const machines = (pct: number, on?: "cascade" | "free"): Power => ({ kind: "game-bonus", game: "machines", pct, on });
 
 const ROWS: Row[] = [
   [1, "Le Portier", "La Maison", "commune", "cle", "blackjack", win(2, "blackjack")],
@@ -45,29 +66,29 @@ const ROWS: Row[] = [
 
   [10, "L'Étoile du Nord", "Les Astres", "commune", "etoile", "tout", win(1)],
   [11, "La Lune Pâle", "Les Astres", "commune", "lune", "tout", win(1)],
-  [12, "Le Croissant", "Les Astres", "commune", "lune", "roulette", future("+2 % sur les mises sur les douzaines.")],
+  [12, "Le Croissant", "Les Astres", "commune", "lune", "roulette", roulette(5, "douzaine")],
   [13, "L'Étoile du Berger", "Les Astres", "rare", "etoile", "tout", win(2)],
   [14, "La Lune Noire", "Les Astres", "epique", "lune", "poker", future("Une fois par main, échange une carte de ta main.")],
   [15, "L'Éclipse", "Les Astres", "epique", "soleil", "tout", win(4)],
   [16, "Le Zénith", "Les Astres", "legendaire", "soleil", "tout", win(6)],
   [17, "Le Grand Soleil", "Les Astres", "mythique", "soleil", "tout", win(10)],
 
-  [18, "Le Faux Dé", "Les Tricheurs", "commune", "de", "roulette", future("+2 % sur le rouge et le noir.")],
+  [18, "Le Faux Dé", "Les Tricheurs", "commune", "de", "roulette", roulette(3, "chance")],
   [19, "La Carte Biseautée", "Les Tricheurs", "commune", "pique", "poker", future("+5 % sur les paires de valets ou mieux.")],
-  [20, "Le Dé Lesté", "Les Tricheurs", "commune", "de", "roulette", future("+3 % sur les numéros pleins.")],
-  [21, "Le Dé Pipé", "Les Tricheurs", "rare", "de", "roulette", future("Rembourse la moitié de la mise quand le zéro tombe.")],
+  [20, "Le Dé Lesté", "Les Tricheurs", "commune", "de", "roulette", roulette(3, "plein")],
+  [21, "Le Dé Pipé", "Les Tricheurs", "rare", "de", "roulette", { kind: "zero-refund", pct: 50 }],
   [22, "La Manche Truquée", "Les Tricheurs", "rare", "pique", "blackjack", bust(10)],
   [23, "Le Bluff", "Les Tricheurs", "rare", "oeil", "poker", future("Une fois par visite, rejoue une main perdue.")],
   [24, "L'As de Pique", "Les Tricheurs", "epique", "pique", "poker", future("Ta première main de chaque visite contient un As.")],
-  [25, "Le Tapis Pipé", "Les Tricheurs", "legendaire", "oeil", "roulette", future("Une fois par visite, rejoue gratuitement une mise perdue.")],
+  [25, "Le Tapis Pipé", "Les Tricheurs", "legendaire", "oeil", "roulette", { kind: "free-loss", uses: 1 }],
 
-  [26, "La Coupe", "Le Banquet", "commune", "coupe", "machines", future("+2 % sur chaque gain aux machines.")],
-  [27, "Le Festin", "Le Banquet", "commune", "couronne", "machines", future("Un tour gratuit toutes les 50 parties.")],
+  [26, "La Coupe", "Le Banquet", "commune", "coupe", "machines", machines(2)],
+  [27, "Le Festin", "Le Banquet", "commune", "couronne", "machines", { kind: "free-spin-every", spins: 50 }],
   [28, "Le Toast", "Le Banquet", "commune", "coupe", "tout", win(1)],
-  [29, "Le Calice", "Le Banquet", "rare", "coupe", "machines", future("Les jokers apparaissent plus souvent.")],
-  [30, "Le Sommelier", "Le Banquet", "rare", "cle", "machines", future("+5 % sur les gains en cascade.")],
-  [31, "La Fontaine", "Le Banquet", "epique", "coupe", "machines", future("Les tours gratuits rapportent 10 % de plus.")],
-  [32, "Le Grand Cru", "Le Banquet", "rare", "couronne", "machines", future("+3 % sur tous les gains aux machines.")],
+  [29, "Le Calice", "Le Banquet", "rare", "coupe", "machines", { kind: "wild-boost" }],
+  [30, "Le Sommelier", "Le Banquet", "rare", "cle", "machines", machines(5, "cascade")],
+  [31, "La Fontaine", "Le Banquet", "epique", "coupe", "machines", machines(10, "free")],
+  [32, "Le Grand Cru", "Le Banquet", "rare", "couronne", "machines", machines(3)],
 
   [33, "Le Sablier", "Les Horlogers", "commune", "sablier", "tout", future("Le bonus quotidien se recharge 10 % plus vite.")],
   [34, "Le Rouage", "Les Horlogers", "commune", "etoile", "tout", win(1)],
@@ -109,5 +130,7 @@ export const FAMILY_BONUS: Record<Family, { power: Power; sceaux: number }> = {
 export const cardsOfFamily = (family: Family) => CATALOG.filter((c) => c.family === family);
 
 /** Whether a card's power can be used at a given open table. */
-export const usableAt = (card: CardDef, table: "blackjack") =>
+export const usableAt = (card: CardDef, table: PlayableTable) =>
   (card.table === table || card.table === "tout") && card.power.kind !== "future";
+
+export const TABLE_NAME: Record<PlayableTable, string> = { blackjack: "Blackjack", roulette: "Roulette", machines: "Machines" };

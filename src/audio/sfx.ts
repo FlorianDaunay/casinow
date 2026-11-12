@@ -189,6 +189,76 @@ export const sfx = {
     const t = a.ctx.currentTime;
     for (let i = 0; i < 12; i++) tone(a.ctx, a.out, t + i * vary(0.03, 0.5), vary(NOTE(30), 0.15), 0.12, 0.03);
   },
+  /** The ball rolling on the track, slowing over `seconds`. */
+  roll(seconds: number) {
+    const a = audio();
+    if (!a) return;
+    const { ctx: c, out } = a;
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer;
+    src.loop = true;
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.Q.value = 1.4;
+    f.frequency.setValueAtTime(2200, t);
+    f.frequency.exponentialRampToValueAtTime(500, t + seconds);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.22, t + 0.3);
+    g.gain.exponentialRampToValueAtTime(0.05, t + seconds * 0.8);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
+    src.connect(f).connect(g).connect(out);
+    src.start(t);
+    src.stop(t + seconds + 0.05);
+  },
+  /** The ball skipping over a fret. */
+  fret() {
+    const a = audio();
+    if (!a) return;
+    const t = a.ctx.currentTime;
+    tone(a.ctx, a.out, t, vary(2600, 0.15), 0.03, 0.08, "triangle", 0.001);
+    noise(a.ctx, a.out, t, 0.025, "highpass", 3000, 1, 0.15);
+  },
+  /** The ball settling in its pocket. */
+  clack() {
+    const a = audio();
+    if (!a) return;
+    const t = a.ctx.currentTime;
+    tone(a.ctx, a.out, t, 1900, 0.06, 0.2, "triangle", 0.001);
+    tone(a.ctx, a.out, t + 0.07, 2100, 0.04, 0.1, "triangle", 0.001);
+    noise(a.ctx, a.out, t, 0.08, "bandpass", 2500, 2, 0.3);
+  },
+  /** A reel locking into place. */
+  reelStop(index: number) {
+    const a = audio();
+    if (!a) return;
+    const t = a.ctx.currentTime;
+    tone(a.ctx, a.out, t, 90 + index * 8, 0.12, 0.22, "sine", 0.002);
+    noise(a.ctx, a.out, t, 0.05, "bandpass", vary(1500), 1.5, 0.25);
+  },
+  /** Reels whirring. */
+  reelSpin(seconds: number) {
+    const a = audio();
+    if (!a) return;
+    const t = a.ctx.currentTime;
+    for (let i = 0; i < seconds / 0.06; i++) noise(a.ctx, a.out, t + i * 0.06, 0.04, "bandpass", vary(1100, 0.2), 2, 0.07);
+  },
+  /** Winning symbols bursting. */
+  burst(size: number) {
+    const a = audio();
+    if (!a) return;
+    const t = a.ctx.currentTime;
+    noise(a.ctx, a.out, t, 0.18, "highpass", 4000, 0.7, 0.18);
+    for (let i = 0; i < 3 + size; i++) tone(a.ctx, a.out, t + i * 0.035, vary(NOTE(24 + (i % 4) * 3), 0.02), 0.2, 0.05);
+  },
+  /** Tension when a third sceau may land. */
+  tease() {
+    const a = audio();
+    if (!a) return;
+    const t = a.ctx.currentTime;
+    for (let i = 0; i < 8; i++) tone(a.ctx, a.out, t + i * 0.09, NOTE(i % 2 ? 7 : 5), 0.12, 0.05, "triangle");
+  },
   lose() {
     const a = audio();
     if (!a) return;

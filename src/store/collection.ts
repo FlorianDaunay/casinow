@@ -2,9 +2,17 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { BOOSTERS, dustValue, FORGE_COST, openBooster, type BoosterTier, type Pull } from "@/core/cards/booster";
 import { CATALOG, cardsOfFamily, FAMILIES, FAMILY_BONUS, findCard, usableAt } from "@/core/cards/catalog";
-import { blackjackModifiers, slotCount, type BlackjackModifiers } from "@/core/cards/effects";
+import {
+  blackjackModifiers,
+  machineModifiers,
+  rouletteModifiers,
+  slotCount,
+  type BlackjackModifiers,
+  type MachineModifiers,
+  type RouletteModifiers,
+} from "@/core/cards/effects";
 import { cryptoRandom } from "@/core/cards/playing";
-import { FINISHES, type CardDef, type Family, type Finish } from "@/core/cards/types";
+import { FINISHES, PLAYABLE_TABLES, type CardDef, type Family, type Finish, type PlayableTable } from "@/core/cards/types";
 import { useProfile } from "./profile";
 
 export type Copies = Partial<Record<Finish, number>>;
@@ -23,7 +31,7 @@ export interface OpenResult {
 interface CollectionState {
   owned: Record<string, Copies>;
   /** Equipped atouts per open table. */
-  loadout: { blackjack: string[] };
+  loadout: Record<PlayableTable, string[]>;
   packsOpened: number;
   /** Families whose completion gift was already given. */
   claimed: Family[];
@@ -34,8 +42,8 @@ interface CollectionState {
   meltDuplicates: () => number;
   melt: (id: string, finish: Finish) => number;
   forge: (id: string) => Family[] | null;
-  equip: (id: string) => boolean;
-  unequip: (id: string) => void;
+  equip: (id: string, table: PlayableTable) => boolean;
+  unequip: (id: string, table: PlayableTable) => void;
 }
 
 export const totalCopies = (copies: Copies | undefined) => FINISHES.reduce((n, f) => n + (copies?.[f] ?? 0), 0);
@@ -65,7 +73,7 @@ export const useCollection = create<CollectionState>()(
 
       return {
         owned: {},
-        loadout: { blackjack: [] },
+        loadout: { blackjack: [], roulette: [], machines: [] },
         packsOpened: 0,
         claimed: [],
         freePacks: 1,
@@ -130,37 +138,53 @@ export const useCollection = create<CollectionState>()(
           return claimNew(owned);
         },
 
-        equip: (id) => {
+        equip: (id, table) => {
           const { loadout, owned } = get();
           const card = findCard(id);
           const slots = slotCount(completedFamilies(owned));
-          if (!card || !usableAt(card, "blackjack") || !totalCopies(owned[id])) return false;
-          if (loadout.blackjack.includes(id) || loadout.blackjack.length >= slots) return false;
-          set({ loadout: { blackjack: [...loadout.blackjack, id] } });
+          if (!card || !usableAt(card, table) || !totalCopies(owned[id])) return false;
+          if (loadout[table].includes(id) || loadout[table].length >= slots) return false;
+          set({ loadout: { ...loadout, [table]: [...loadout[table], id] } });
           return true;
         },
 
-        unequip: (id) => {
+        unequip: (id, table) => {
           const { loadout } = get();
-          set({ loadout: { blackjack: loadout.blackjack.filter((x) => x !== id) } });
+          set({ loadout: { ...loadout, [table]: loadout[table].filter((x) => x !== id) } });
         },
       };
     },
     {
       name: "casinow-collection",
-      version: 1,
+      version: 2,
+      // v1 had a single blackjack loadout.
+      migrate: (persisted) => {
+        const state = persisted as { loadout?: Partial<Record<PlayableTable, string[]>> };
+        state.loadout = Object.fromEntries(PLAYABLE_TABLES.map((t) => [t, state.loadout?.[t] ?? []])) as Record<PlayableTable, string[]>;
+        return state as never;
+      },
       partialize: ({ owned, loadout, packsOpened, claimed, freePacks }) => ({ owned, loadout, packsOpened, claimed, freePacks }),
     }
   )
 );
 
-/** Equipped atouts at the blackjack table, as cards. */
-export const equippedCards = (state: Pick<CollectionState, "loadout">): CardDef[] =>
-  state.loadout.blackjack.map((id) => findCard(id)).filter((c): c is CardDef => !!c);
+/** Equipped atouts at a table, as cards. */
+export const equippedCards = (state: Pick<CollectionState, "loadout">, table: PlayableTable): CardDef[] =>
+  (state.loadout[table] ?? []).map((id) => findCard(id)).filter((c): c is CardDef => !!c);
 
 export function currentBlackjackModifiers(): BlackjackModifiers {
   const s = useCollection.getState();
-  return blackjackModifiers(equippedCards(s), completedFamilies(s.owned));
+  return blackjackModifiers(equippedCards(s, "blackjack"), completedFamilies(s.owned));
+}
+
+export function currentRouletteModifiers(): RouletteModifiers {
+  const s = useCollection.getState();
+  return rouletteModifiers(equippedCards(s, "roulette"), completedFamilies(s.owned));
+}
+
+export function currentMachineModifiers(): MachineModifiers {
+  const s = useCollection.getState();
+  return machineModifiers(equippedCards(s, "machines"), completedFamilies(s.owned));
 }
 
 export const CATALOG_SIZE = CATALOG.length;

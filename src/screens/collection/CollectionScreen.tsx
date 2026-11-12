@@ -7,26 +7,50 @@ import { CollectibleCard } from "@/components/CollectibleCard";
 import { DecoRule } from "@/components/Ornaments";
 import { TopBar } from "@/components/TopBar";
 import { dustValue, FORGE_COST } from "@/core/cards/booster";
-import { CATALOG, cardsOfFamily, describePower, FAMILIES, FAMILY_BONUS, usableAt } from "@/core/cards/catalog";
-import { blackjackModifiers, slotCount, type BlackjackModifiers } from "@/core/cards/effects";
-import { FINISHES, type CardDef, type Finish } from "@/core/cards/types";
+import { CATALOG, cardsOfFamily, describePower, FAMILIES, FAMILY_BONUS, TABLE_NAME, usableAt } from "@/core/cards/catalog";
+import { blackjackModifiers, machineModifiers, rouletteModifiers, slotCount } from "@/core/cards/effects";
+import { FINISHES, PLAYABLE_TABLES, type CardDef, type Family, type Finish, type PlayableTable } from "@/core/cards/types";
 import { bestFinish, completedFamilies, equippedCards, totalCopies, useCollection, type Copies } from "@/store/collection";
 import { useProfile } from "@/store/profile";
 
 const FINISH_LABEL: Record<Finish, string> = { standard: "Standard", holo: "Holo", gravee: "Gravée or" };
 const TABLE_LABEL = { blackjack: "Blackjack", roulette: "Roulette", machines: "Machines", poker: "Vidéo poker", tout: "Toutes tables" } as const;
 
-/** One-line summary of what the equipped atouts do, in plain words. */
-function summarize(m: BlackjackModifiers): string[] {
+const pct = (x: number) => `${Math.round(x * 100)} %`;
+
+/** What the equipped atouts do at a table, in plain words. */
+function summarize(table: PlayableTable, equipped: CardDef[], completed: Family[]): string[] {
   const out: string[] = [];
-  if (m.winBonus) out.push(`+${Math.round(m.winBonus * 100)} % sur les gains`);
-  if (m.bustRefund) out.push(`${Math.round(m.bustRefund * 100)} % remboursés si dépassé`);
-  if (m.blackjackPays > 1.5) out.push(`blackjack payé ${m.blackjackPays} pour 1`);
-  if (m.doubleAny) out.push("double libre");
-  if (m.charlie) out.push("cinq cartes gagnent");
-  if (m.peekUses) out.push(`œil du croupier ×${m.peekUses}`);
+  if (table === "blackjack") {
+    const m = blackjackModifiers(equipped, completed);
+    if (m.winBonus) out.push(`+${pct(m.winBonus)} sur les gains`);
+    if (m.bustRefund) out.push(`${pct(m.bustRefund)} remboursés si dépassé`);
+    if (m.blackjackPays > 1.5) out.push(`blackjack payé ${m.blackjackPays} pour 1`);
+    if (m.doubleAny) out.push("double libre");
+    if (m.charlie) out.push("cinq cartes gagnent");
+    if (m.peekUses) out.push(`œil du croupier ×${m.peekUses}`);
+  } else if (table === "roulette") {
+    const m = rouletteModifiers(equipped, completed);
+    if (m.winBonus) out.push(`+${pct(m.winBonus)} sur les gains`);
+    if (m.onBet.plein) out.push(`+${pct(m.onBet.plein)} sur les pleins`);
+    if (m.onBet.douzaine) out.push(`+${pct(m.onBet.douzaine)} sur les douzaines`);
+    if (m.onBet.chance) out.push(`+${pct(m.onBet.chance)} sur les chances simples`);
+    if (m.zeroRefund) out.push(`${pct(m.zeroRefund)} rendus sur le zéro`);
+    if (m.freeLosses) out.push(`${m.freeLosses} tour perdu remboursé`);
+  } else {
+    const m = machineModifiers(equipped, completed);
+    if (m.winBonus) out.push(`+${pct(m.winBonus)} sur les gains`);
+    if (m.cascadeBonus) out.push(`+${pct(m.cascadeBonus)} sur les cascades`);
+    if (m.freeBonus) out.push(`+${pct(m.freeBonus)} sur les tours gratuits`);
+    if (m.wildBoost) out.push("jokers plus fréquents");
+    if (m.freeSpinEvery) out.push(`un tour offert toutes les ${m.freeSpinEvery} parties`);
+  }
   return out;
 }
+
+/** The table a card gets equipped at: its own, or the one being edited for "toutes tables". */
+const targetTable = (card: CardDef, current: PlayableTable): PlayableTable | null =>
+  card.table === "tout" ? current : (PLAYABLE_TABLES as readonly string[]).includes(card.table) ? (card.table as PlayableTable) : null;
 
 /** An unowned card: its place in the album, number and rarity only. */
 function Silhouette({ card, width }: { card: CardDef; width: number }) {
@@ -55,15 +79,17 @@ function CardTile({ card, copies, equipped, width, onOpen }: { card: CardDef; co
   );
 }
 
-function CardDetail({ card, onClose }: { card: CardDef; onClose: () => void }) {
+function CardDetail({ card, table, onClose }: { card: CardDef; table: PlayableTable; onClose: () => void }) {
   const { owned, loadout, equip, unequip, melt, forge } = useCollection();
   const dust = useProfile((s) => s.wallet.poussiere);
   const copies = owned[card.id];
   const n = totalCopies(copies);
   const m = MATERIALS[card.rarity];
-  const isEquipped = loadout.blackjack.includes(card.id);
+  const target = targetTable(card, table);
+  const isEquipped = !!target && loadout[target].includes(card.id);
   const slots = slotCount(completedFamilies(owned));
-  const usable = usableAt(card, "blackjack");
+  const usable = !!target && usableAt(card, target);
+  const full = !!target && loadout[target].length >= slots;
   const cost = FORGE_COST[card.rarity];
   // Melt the commonest finish first.
   const meltable = FINISHES.find((f) => (copies?.[f] ?? 0) > 0 && n > 1);
@@ -92,17 +118,17 @@ function CardDetail({ card, onClose }: { card: CardDef; onClose: () => void }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {n > 0 && usable && (
+          {n > 0 && usable && target && (
             <button
               className="btn btn-gold btn-compact disabled:opacity-40"
-              disabled={!isEquipped && loadout.blackjack.length >= slots}
+              disabled={!isEquipped && full}
               onClick={() => {
-                if (isEquipped) unequip(card.id);
-                else equip(card.id);
+                if (isEquipped) unequip(card.id, target);
+                else equip(card.id, target);
                 sfx.chip();
               }}
             >
-              {isEquipped ? "Retirer l'atout" : loadout.blackjack.length >= slots ? "Emplacements pleins" : "Équiper au blackjack"}
+              {isEquipped ? `Retirer · ${TABLE_NAME[target]}` : full ? "Emplacements pleins" : `Équiper · ${TABLE_NAME[target]}`}
             </button>
           )}
           {meltable && (
@@ -139,16 +165,30 @@ function CardDetail({ card, onClose }: { card: CardDef; onClose: () => void }) {
   );
 }
 
-function Loadout({ onOpen }: { onOpen: (c: CardDef) => void }) {
+function Loadout({ table, setTable, onOpen }: { table: PlayableTable; setTable: (t: PlayableTable) => void; onOpen: (c: CardDef) => void }) {
   const collection = useCollection();
-  const equipped = equippedCards(collection);
+  const equipped = equippedCards(collection, table);
   const completed = completedFamilies(collection.owned);
   const slots = slotCount(completed);
-  const lines = summarize(blackjackModifiers(equipped, completed));
+  const lines = summarize(table, equipped, completed);
   return (
     <section className="panel-deco mx-auto mb-14 max-w-3xl px-5 py-6 sm:px-8">
+      <div className="mb-5 flex justify-center gap-1">
+        {PLAYABLE_TABLES.map((t) => (
+          <button
+            key={t}
+            onClick={() => {
+              setTable(t);
+              sfx.tick();
+            }}
+            className={`label-deco rounded-pill px-2.5 py-1.5 text-[0.6rem] transition sm:px-3 sm:text-[0.68rem] ${t === table ? "bg-accent/15 text-accent" : "text-text-muted hover:text-text-secondary"}`}
+          >
+            {TABLE_NAME[t]}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-col items-center gap-1 text-center">
-        <span className="label-deco text-accent">Atouts · Table de blackjack</span>
+        <span className="label-deco text-accent">Atouts · {TABLE_NAME[table]}</span>
         <p className="font-serif text-base italic text-text-secondary">{lines.length ? lines.join(" · ") : "Aucun atout équipé. Touchez une carte pour l'équiper."}</p>
       </div>
       <div className="mt-5 flex flex-wrap justify-center gap-3">
@@ -173,6 +213,7 @@ function Loadout({ onOpen }: { onOpen: (c: CardDef) => void }) {
 export function CollectionScreen() {
   const { owned, loadout, meltDuplicates } = useCollection();
   const [selected, setSelected] = useState<CardDef | null>(null);
+  const [table, setTable] = useState<PlayableTable>("blackjack");
   const [onlyUsable, setOnlyUsable] = useState(false);
   const ownedCount = CATALOG.filter((c) => totalCopies(owned[c.id]) > 0).length;
   const completed = completedFamilies(owned);
@@ -219,17 +260,17 @@ export function CollectionScreen() {
           </div>
         </header>
 
-        <Loadout onOpen={setSelected} />
+        <Loadout table={table} setTable={setTable} onOpen={setSelected} />
 
         <div className="mb-10 flex justify-center">
           <button className={`label-deco rounded-pill border px-4 py-2 transition ${onlyUsable ? "border-accent text-accent" : "border-border text-text-muted"}`} onClick={() => setOnlyUsable(!onlyUsable)}>
-            Utilisables au blackjack
+            Utilisables · {TABLE_NAME[table]}
           </button>
         </div>
 
         <div className="space-y-16">
           {FAMILIES.map((family) => {
-            const cards = cardsOfFamily(family).filter((c) => !onlyUsable || usableAt(c, "blackjack"));
+            const cards = cardsOfFamily(family).filter((c) => !onlyUsable || usableAt(c, table));
             if (!cards.length) return null;
             const all = cardsOfFamily(family);
             const have = all.filter((c) => totalCopies(owned[c.id]) > 0).length;
@@ -248,7 +289,7 @@ export function CollectionScreen() {
                 </div>
                 <div className="flex flex-wrap justify-center gap-x-2.5 gap-y-4 sm:gap-x-5 sm:gap-y-7">
                   {cards.map((c) => (
-                    <CardTile key={c.id} card={c} copies={owned[c.id]} equipped={loadout.blackjack.includes(c.id)} width={width} onOpen={() => setSelected(c)} />
+                    <CardTile key={c.id} card={c} copies={owned[c.id]} equipped={loadout[table].includes(c.id)} width={width} onOpen={() => setSelected(c)} />
                   ))}
                 </div>
               </section>
@@ -256,7 +297,7 @@ export function CollectionScreen() {
           })}
         </div>
       </main>
-      {selected && <CardDetail card={selected} onClose={() => setSelected(null)} />}
+      {selected && <CardDetail card={selected} table={table} onClose={() => setSelected(null)} />}
     </div>
   );
 }

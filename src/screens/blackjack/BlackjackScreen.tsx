@@ -237,7 +237,7 @@ function Shoe({ remaining, total }: { remaining: number; total: number }) {
 /** Equipped atouts, fanned in the corner of the felt; touching them opens the collection. */
 function AtoutStrip() {
   const collection = useCollection();
-  const cards = equippedCards(collection);
+  const cards = equippedCards(collection, "blackjack");
   return (
     <button className="absolute left-5 top-5 z-10 flex flex-col items-start gap-1 sm:left-7 sm:top-6" onClick={() => navigate("collection")} aria-label="Atouts équipés">
       <span className="label-deco text-[0.5rem] text-[#E9DFC8]/50">Atouts</span>

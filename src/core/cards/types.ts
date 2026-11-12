@@ -11,7 +11,8 @@ export type Emblem = "soleil" | "lune" | "oeil" | "cle" | "couronne" | "pique" |
 export type Table = "blackjack" | "roulette" | "machines" | "poker" | "tout";
 
 /** Tables where atouts can be equipped (the ones that are open). */
-export type PlayableTable = "blackjack";
+export const PLAYABLE_TABLES = ["blackjack", "roulette", "machines"] as const;
+export type PlayableTable = (typeof PLAYABLE_TABLES)[number];
 
 export type Family = "La Maison" | "Les Astres" | "Les Tricheurs" | "Le Banquet" | "Les Horlogers";
 
@@ -27,6 +28,16 @@ export type Power =
   | { kind: "charlie" }
   | { kind: "peek"; uses: number }
   | { kind: "slot" }
+  /** Extra share of the net win at one game, optionally on one kind of win only. */
+  | { kind: "game-bonus"; game: "roulette" | "machines"; pct: number; on?: "douzaine" | "chance" | "plein" | "cascade" | "free" }
+  /** Roulette: share of the losing stakes given back when the zero falls. */
+  | { kind: "zero-refund"; pct: number }
+  /** Roulette: the first losing spins of a visit are refunded. */
+  | { kind: "free-loss"; uses: number }
+  /** Machines: jokers land more often. */
+  | { kind: "wild-boost" }
+  /** Machines: one free spin every N paid spins. */
+  | { kind: "free-spin-every"; spins: number }
   | { kind: "future"; text: string };
 
 export interface CardDef {

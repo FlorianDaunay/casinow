@@ -776,3 +776,439 @@
 .peeked .table-card-front {
   opacity: 0.85;
 }
+
+/* Roulette ------------------------------------------------------------------- */
+.roulette-board {
+  gap: 2px;
+  border-radius: 14px;
+}
+.board-spot {
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.4);
+  background: rgb(0 0 0 / 0.08);
+  color: #efe6d3;
+  transition: background 0.15s, box-shadow 0.2s;
+  touch-action: manipulation;
+}
+.board-spot:not(:disabled):hover {
+  background: rgb(232 196 108 / 0.1);
+}
+.board-spot.is-covered {
+  background: rgb(232 196 108 / 0.16);
+}
+.board-spot.is-winning {
+  box-shadow:
+    inset 0 0 0 2px #e8c46c,
+    0 0 18px rgb(232 196 108 / 0.55);
+  animation: win-pulse 1.2s ease-in-out infinite;
+  z-index: 2;
+}
+@keyframes win-pulse {
+  50% {
+    background: rgb(232 196 108 / 0.22);
+  }
+}
+.number-pill {
+  display: grid;
+  place-items: center;
+  min-width: 2.1rem;
+  height: 1.45rem;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  font-family: "Bodoni Moda", serif;
+  font-size: 0.95rem;
+  color: #f1e7d2;
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.35);
+}
+.is-horizontal .number-pill {
+  min-width: 2.2rem;
+  height: 2.2rem;
+  font-size: 1.05rem;
+}
+.board-label {
+  font-family: "Josefin Sans", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.62rem;
+  color: rgb(239 230 211 / 0.85);
+}
+.board-label.is-vertical-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.3em;
+}
+.board-chip {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.7));
+}
+.board-chip-amount {
+  position: absolute;
+  bottom: -2px;
+  right: 2px;
+  font-family: "Bodoni Moda", serif;
+  font-size: 0.6rem;
+  color: #fff3d0;
+  background: rgb(0 0 0 / 0.75);
+  border-radius: 9999px;
+  padding: 0 0.3rem;
+}
+.history-dot {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 9999px;
+  font-family: "Bodoni Moda", serif;
+  font-size: 0.75rem;
+  color: #f1e7d2;
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.4);
+}
+.history-dot.is-latest {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 0.9rem;
+  box-shadow:
+    inset 0 0 0 1.5px #e8c46c,
+    0 0 12px rgb(232 196 108 / 0.4);
+  animation: result-in 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.result-number {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 9999px;
+  font-family: "Bodoni Moda", serif;
+  font-size: 2.6rem;
+  color: #f1e7d2;
+  box-shadow:
+    inset 0 0 0 2px #e8c46c,
+    inset 0 0 0 6px rgb(0 0 0 / 0.3),
+    0 0 40px rgb(232 196 108 / 0.35);
+}
+.wheel-shadow {
+  border-radius: 9999px;
+  filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.85)) drop-shadow(0 0 50px rgb(232 196 108 / 0.12));
+}
+.wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 90% at 50% 40%, rgb(20 16 10 / 0.97), rgb(3 2 2 / 0.98));
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.04);
+  transition: opacity 0.35s, transform 0.35s;
+}
+.wheel-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+.chip-select {
+  transition: transform 0.15s, filter 0.2s;
+}
+.chip-select.is-selected {
+  transform: translateY(-6px);
+  filter: drop-shadow(0 2px 0 #000) drop-shadow(0 0 12px rgb(232 196 108 / 0.8));
+}
+.pocket-glow {
+  animation: blink 1s ease-in-out infinite;
+}
+
+/* Machines ------------------------------------------------------------------- */
+.cabinet {
+  position: relative;
+  padding: 0 14px 12px;
+  border-radius: 46% 46% 18px 18px / 70px 70px 18px 18px;
+  background:
+    radial-gradient(80% 40% at 50% 0%, rgb(232 196 108 / 0.14), transparent 70%),
+    linear-gradient(#17120b, #0b0906);
+  box-shadow:
+    inset 0 0 0 1.5px rgb(201 165 90 / 0.7),
+    inset 0 0 0 7px #0b0906,
+    inset 0 0 0 8px rgb(201 165 90 / 0.25),
+    0 40px 80px -30px rgb(0 0 0 / 0.95),
+    0 0 60px -20px rgb(232 196 108 / 0.25);
+  transition: box-shadow 0.6s;
+}
+.cabinet.is-free {
+  box-shadow:
+    inset 0 0 0 1.5px #e9b3a0,
+    inset 0 0 0 7px #0b0906,
+    inset 0 0 0 8px rgb(233 179 160 / 0.4),
+    0 40px 80px -30px rgb(0 0 0 / 0.95),
+    0 0 80px -10px rgb(255 159 134 / 0.45);
+}
+.cabinet-marquee {
+  position: relative;
+  height: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 12px;
+}
+.bulb {
+  fill: #f6dc93;
+  filter: drop-shadow(0 0 4px #f2be4e);
+  animation: bulb 1.2s steps(1) infinite;
+}
+.bulb-b {
+  animation-delay: 0.6s;
+}
+@keyframes bulb {
+  50% {
+    fill: #5a4320;
+    filter: none;
+  }
+}
+.cabinet.is-free .bulb {
+  animation-duration: 0.4s;
+}
+.reels {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 6px;
+  background: #060504;
+  box-shadow:
+    inset 0 0 0 1px rgb(201 165 90 / 0.6),
+    inset 0 8px 24px rgb(0 0 0 / 0.9);
+}
+.reel {
+  position: relative;
+  width: var(--cell);
+  height: calc(var(--cell) * 3);
+  overflow: hidden;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #0d0b08, #1a150e 50%, #0d0b08);
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.18);
+}
+.reel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(rgb(0 0 0 / 0.55), transparent 22%, transparent 78%, rgb(0 0 0 / 0.55));
+}
+.reel.is-teasing {
+  box-shadow:
+    inset 0 0 0 2px #ff9f86,
+    0 0 24px rgb(255 159 134 / 0.6);
+}
+.slot-cell {
+  width: var(--cell);
+  height: var(--cell);
+  display: grid;
+  place-items: center;
+}
+.slot-cell.is-placed {
+  position: absolute;
+  left: 0;
+  transition: top 0.42s cubic-bezier(0.55, 0, 0.75, 1.3);
+  animation: reel-land 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.slot-cell.is-new {
+  animation: cell-drop 0.46s cubic-bezier(0.55, 0, 0.75, 1.25) both;
+}
+@keyframes reel-land {
+  from {
+    transform: translateY(-18%);
+  }
+}
+@keyframes cell-drop {
+  from {
+    transform: translateY(calc(var(--cell) * -3));
+  }
+}
+.reel-blur {
+  animation: reel-blur 0.22s linear infinite;
+  filter: blur(1.4px) brightness(0.85);
+}
+@keyframes reel-blur {
+  from {
+    transform: translateY(calc(var(--cell) * -9));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.slot-cell.is-glowing {
+  z-index: 2;
+  animation: glow-sym 0.45s ease-in-out infinite alternate;
+}
+.slot-cell.is-glowing::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 1.5px #e8c46c,
+    0 0 18px rgb(232 196 108 / 0.65);
+  background: radial-gradient(circle, rgb(232 196 108 / 0.25), transparent 70%);
+}
+@keyframes glow-sym {
+  to {
+    transform: scale(1.08);
+  }
+}
+.slot-cell.is-bursting {
+  animation: burst-out 0.3s ease-in forwards;
+}
+@keyframes burst-out {
+  to {
+    transform: scale(1.5);
+    opacity: 0;
+    filter: brightness(2.5);
+  }
+}
+.slot-cell.is-scatter svg {
+  filter: drop-shadow(0 0 6px rgb(224 122 110 / 0.6));
+}
+.step-win {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  pointer-events: none;
+  font-family: "Bodoni Moda", serif;
+  font-size: 2rem;
+  color: #fff3d0;
+  text-shadow:
+    0 0 18px rgb(232 196 108 / 0.9),
+    0 2px 6px #000;
+  animation: step-win 1.1s ease-out forwards;
+}
+@keyframes step-win {
+  from {
+    transform: translate(-50%, -30%) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -110%) scale(1);
+    opacity: 0;
+  }
+}
+.cabinet-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.4);
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.2);
+}
+.ladder-step {
+  font-family: "Bodoni Moda", serif;
+  font-size: 0.8rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  color: rgb(239 230 211 / 0.4);
+  transition: all 0.3s;
+}
+.ladder-step.is-on {
+  color: #1a1308;
+  background: linear-gradient(100deg, #b98a35, #f6dc93, #c99a45);
+  box-shadow: 0 0 12px rgb(232 196 108 / 0.6);
+}
+.bet-step {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 9999px;
+  font-family: "Bodoni Moda", serif;
+  font-size: 1.3rem;
+  color: rgb(var(--color-accent));
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.5);
+  transition: background 0.2s;
+}
+.bet-step:disabled {
+  opacity: 0.3;
+}
+.bet-step:not(:disabled):hover {
+  background: rgb(232 196 108 / 0.1);
+}
+.spin-button {
+  display: grid;
+  place-items: center;
+  width: 5.2rem;
+  height: 5.2rem;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.45), transparent 45%),
+    linear-gradient(140deg, #f6dc93, #c99a45 45%, #8f6421 80%, #e9c26b);
+  box-shadow:
+    inset 0 0 0 3px rgb(26 19 8 / 0.25),
+    inset 0 -6px 12px rgb(0 0 0 / 0.3),
+    0 0 0 4px #0b0906,
+    0 0 0 5px rgb(201 165 90 / 0.6),
+    0 12px 30px -8px rgb(232 196 108 / 0.6);
+  transition: transform 0.12s, filter 0.2s;
+}
+.spin-button:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.spin-button:not(:disabled):active {
+  transform: scale(0.94);
+}
+.spin-button:disabled {
+  filter: saturate(0.4) brightness(0.7);
+}
+.spin-button.is-busy svg {
+  animation: spin-icon 0.8s linear infinite;
+}
+@keyframes spin-icon {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.slot-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, rgb(20 15 8 / 0.92), rgb(0 0 0 / 0.95));
+  animation: scene-in 0.3s ease-out both;
+}
+.slot-banner-rays {
+  position: absolute;
+  width: 160vmax;
+  height: 160vmax;
+  background: repeating-conic-gradient(from 0deg, rgb(232 196 108 / 0.13) 0deg 6deg, transparent 6deg 18deg);
+  mask-image: radial-gradient(circle, #000 10%, transparent 60%);
+  animation: rays-turn 18s linear infinite;
+}
+@keyframes rays-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.coin-fall {
+  position: absolute;
+  top: -40px;
+  animation: coin-fall 2.4s cubic-bezier(0.4, 0, 0.8, 0.6) infinite;
+  transform: scale(var(--s));
+}
+@keyframes coin-fall {
+  to {
+    transform: translateY(110vh) rotate(540deg) scale(var(--s));
+  }
+}
