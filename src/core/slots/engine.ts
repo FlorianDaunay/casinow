@@ -92,7 +92,7 @@ function weightsFor(reel: number, opts: SpinOptions): [Sym, number][] {
   return SYMBOLS.map((s) => {
     let w = BASE_WEIGHTS[s];
     // Jokers never land on the first reel, so every win starts with a real symbol.
-    if (s === "joker") w = reel === 0 ? 0 : w * (opts.wildBoost ? 1.6 : 1);
+    if (s === "joker") w = reel === 0 ? 0 : w * (opts.wildBoost ? 1.12 : 1);
     return [s, w];
   });
 }

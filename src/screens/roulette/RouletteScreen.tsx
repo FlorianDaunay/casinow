@@ -229,7 +229,7 @@ export function RouletteScreen() {
   if (wide) {
     return (
       <div className="showcase-bg flex min-h-[100dvh] flex-col">
-        <TopBar back title="ROULETTE" />
+        <TopBar back title="ROULETTE" rules="roulette" />
         <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-[420px_1fr] items-center gap-10 px-8 py-8">
           <div className="flex flex-col items-center gap-6">
             <div className="wheel-shadow">
@@ -249,7 +249,7 @@ export function RouletteScreen() {
 
   return (
     <div className="showcase-bg flex h-[100dvh] flex-col overflow-hidden">
-      <TopBar back title="ROULETTE" />
+      <TopBar back title="ROULETTE" rules="roulette" />
       <div className="flex items-center justify-between gap-3 px-3 py-2">
         <History numbers={history} />
         {shown && (

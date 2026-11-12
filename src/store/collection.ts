@@ -5,10 +5,12 @@ import { CATALOG, cardsOfFamily, FAMILIES, FAMILY_BONUS, findCard, usableAt } fr
 import {
   blackjackModifiers,
   machineModifiers,
+  pokerModifiers,
   rouletteModifiers,
   slotCount,
   type BlackjackModifiers,
   type MachineModifiers,
+  type PokerModifiers,
   type RouletteModifiers,
 } from "@/core/cards/effects";
 import { cryptoRandom } from "@/core/cards/playing";
@@ -73,7 +75,7 @@ export const useCollection = create<CollectionState>()(
 
       return {
         owned: {},
-        loadout: { blackjack: [], roulette: [], machines: [] },
+        loadout: { blackjack: [], roulette: [], machines: [], poker: [] },
         packsOpened: 0,
         claimed: [],
         freePacks: 1,
@@ -156,8 +158,8 @@ export const useCollection = create<CollectionState>()(
     },
     {
       name: "casinow-collection",
-      version: 2,
-      // v1 had a single blackjack loadout.
+      version: 3,
+      // v1 had a single blackjack loadout; v2 had no poker table.
       migrate: (persisted) => {
         const state = persisted as { loadout?: Partial<Record<PlayableTable, string[]>> };
         state.loadout = Object.fromEntries(PLAYABLE_TABLES.map((t) => [t, state.loadout?.[t] ?? []])) as Record<PlayableTable, string[]>;
@@ -180,6 +182,11 @@ export function currentBlackjackModifiers(): BlackjackModifiers {
 export function currentRouletteModifiers(): RouletteModifiers {
   const s = useCollection.getState();
   return rouletteModifiers(equippedCards(s, "roulette"), completedFamilies(s.owned));
+}
+
+export function currentPokerModifiers(): PokerModifiers {
+  const s = useCollection.getState();
+  return pokerModifiers(equippedCards(s, "poker"), completedFamilies(s.owned));
 }
 
 export function currentMachineModifiers(): MachineModifiers {

@@ -374,7 +374,7 @@ export function BlackjackScreen() {
 
   return (
     <div className="showcase-bg flex h-[100dvh] flex-col overflow-hidden">
-      <TopBar back title="BLACKJACK" />
+      <TopBar back title="BLACKJACK" rules="blackjack" />
 
       <div className="relative min-h-0 flex-1 px-2 pb-2 pt-2 sm:px-6 sm:pt-4">
         <div className="felt bj-felt relative mx-auto flex h-full max-w-5xl flex-col items-center justify-between overflow-hidden px-3 pb-5 pt-4 sm:px-8" style={feltStyle}>

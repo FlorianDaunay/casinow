@@ -4,6 +4,7 @@ import { navigate } from "@/app/router";
 import { music } from "@/audio/music";
 import { sfx } from "@/audio/sfx";
 import { useProfile } from "@/store/profile";
+import { RulesSheet, type RulesGame } from "./RulesSheet";
 import { useCountUp } from "./useCountUp";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR").replace(/\u202f|\u00a0/g, " ");
@@ -89,8 +90,32 @@ function SoundMenu() {
 }
 
 /** App header: way back to the salon, the three balances, and the sound switch. */
-/** `full` shows all three balances on phones too (screens where every currency matters). */
-export function TopBar({ back = false, title, full = false }: { back?: boolean; title?: string; full?: boolean }) {
+/** Small "?" button opening the rules of the current game. */
+function RulesButton({ game }: { game: RulesGame }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        className="grid h-9 w-9 place-items-center rounded-pill border border-border font-display text-lg italic text-accent transition hover:bg-surface-hover"
+        onClick={() => {
+          setOpen(true);
+          sfx.tick();
+        }}
+        aria-label="Règles et gains"
+        title="Règles et gains"
+      >
+        ?
+      </button>
+      {open && <RulesSheet game={game} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+/**
+ * `full` shows all three balances on phones too (screens where every currency matters);
+ * `rules` adds the rules button of a game.
+ */
+export function TopBar({ back = false, title, full = false, rules }: { back?: boolean; title?: string; full?: boolean; rules?: RulesGame }) {
   return (
     <div className="sticky top-0 z-30 border-b border-border bg-canvas/85 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2.5 sm:px-8 sm:py-3">
@@ -116,6 +141,7 @@ export function TopBar({ back = false, title, full = false }: { back?: boolean; 
             <Counter currency="poussiere" />
             <Counter currency="sceaux" />
           </span>
+          {rules && <RulesButton game={rules} />}
           <SoundMenu />
         </div>
       </div>

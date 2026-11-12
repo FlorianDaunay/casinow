@@ -16,7 +16,7 @@ const DOORS: Door[] = [
   { game: "blackjack", title: "Blackjack", line: "Approchez-vous de vingt-et-un sans le dépasser.", route: "blackjack" },
   { game: "roulette", title: "Roulette", line: "Trente-sept cases, une seule bille.", route: "roulette" },
   { game: "machines", title: "Machines", line: "Les rouleaux du grand hall.", route: "machines" },
-  { game: "poker", title: "Vidéo poker", line: "Valets ou mieux, cinq cartes." },
+  { game: "poker", title: "Vidéo poker", line: "Valets ou mieux, cinq cartes.", route: "poker" },
   { game: "collection", title: "Collection", line: "Vos cartes, vos atouts, vos séries.", route: "collection" },
   { game: "boutique", title: "Boutique", line: "Paquets scellés et privilèges.", route: "boutique" },
 ];

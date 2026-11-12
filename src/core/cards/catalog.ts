@@ -28,8 +28,10 @@ export function describePower(power: Power): string {
         plein: "sur les numéros pleins",
         cascade: "des cascades",
         free: "des tours gratuits",
+        valets: "",
       } as const;
-      const game = power.game === "roulette" ? "à la roulette" : "aux machines";
+      if (power.on === "valets") return `Les paires de valets ou mieux rapportent ${power.pct} % de plus.`;
+      const game = power.game === "roulette" ? "à la roulette" : power.game === "machines" ? "aux machines" : "au vidéo poker";
       return power.on ? `Les gains ${where[power.on]} augmentent de ${power.pct} %.` : `Les gains ${game} augmentent de ${power.pct} %.`;
     }
     case "zero-refund":
@@ -40,6 +42,12 @@ export function describePower(power: Power): string {
       return "Les jokers apparaissent plus souvent.";
     case "free-spin-every":
       return `Un tour gratuit toutes les ${power.spins} parties.`;
+    case "swap":
+      return power.uses === 1 ? "Une fois par main, échange une carte de ta main." : `${power.uses} fois par main, échange une carte de ta main.`;
+    case "poker-refund":
+      return power.uses === 1 ? "Une fois par visite, rembourse une main perdue." : `${power.uses} fois par visite, rembourse une main perdue.`;
+    case "first-ace":
+      return "Ta première main de chaque visite contient un As.";
     case "future":
       return power.text;
   }
@@ -68,18 +76,18 @@ const ROWS: Row[] = [
   [11, "La Lune Pâle", "Les Astres", "commune", "lune", "tout", win(1)],
   [12, "Le Croissant", "Les Astres", "commune", "lune", "roulette", roulette(5, "douzaine")],
   [13, "L'Étoile du Berger", "Les Astres", "rare", "etoile", "tout", win(2)],
-  [14, "La Lune Noire", "Les Astres", "epique", "lune", "poker", future("Une fois par main, échange une carte de ta main.")],
+  [14, "La Lune Noire", "Les Astres", "epique", "lune", "poker", { kind: "swap", uses: 1 }],
   [15, "L'Éclipse", "Les Astres", "epique", "soleil", "tout", win(4)],
   [16, "Le Zénith", "Les Astres", "legendaire", "soleil", "tout", win(6)],
   [17, "Le Grand Soleil", "Les Astres", "mythique", "soleil", "tout", win(10)],
 
   [18, "Le Faux Dé", "Les Tricheurs", "commune", "de", "roulette", roulette(3, "chance")],
-  [19, "La Carte Biseautée", "Les Tricheurs", "commune", "pique", "poker", future("+5 % sur les paires de valets ou mieux.")],
+  [19, "La Carte Biseautée", "Les Tricheurs", "commune", "pique", "poker", { kind: "game-bonus", game: "poker", pct: 5, on: "valets" }],
   [20, "Le Dé Lesté", "Les Tricheurs", "commune", "de", "roulette", roulette(3, "plein")],
   [21, "Le Dé Pipé", "Les Tricheurs", "rare", "de", "roulette", { kind: "zero-refund", pct: 50 }],
   [22, "La Manche Truquée", "Les Tricheurs", "rare", "pique", "blackjack", bust(10)],
-  [23, "Le Bluff", "Les Tricheurs", "rare", "oeil", "poker", future("Une fois par visite, rejoue une main perdue.")],
-  [24, "L'As de Pique", "Les Tricheurs", "epique", "pique", "poker", future("Ta première main de chaque visite contient un As.")],
+  [23, "Le Bluff", "Les Tricheurs", "rare", "oeil", "poker", { kind: "poker-refund", uses: 1 }],
+  [24, "L'As de Pique", "Les Tricheurs", "epique", "pique", "poker", { kind: "first-ace" }],
   [25, "Le Tapis Pipé", "Les Tricheurs", "legendaire", "oeil", "roulette", { kind: "free-loss", uses: 1 }],
 
   [26, "La Coupe", "Le Banquet", "commune", "coupe", "machines", machines(2)],
@@ -133,4 +141,4 @@ export const cardsOfFamily = (family: Family) => CATALOG.filter((c) => c.family 
 export const usableAt = (card: CardDef, table: PlayableTable) =>
   (card.table === table || card.table === "tout") && card.power.kind !== "future";
 
-export const TABLE_NAME: Record<PlayableTable, string> = { blackjack: "Blackjack", roulette: "Roulette", machines: "Machines" };
+export const TABLE_NAME: Record<PlayableTable, string> = { blackjack: "Blackjack", roulette: "Roulette", machines: "Machines", poker: "Poker" };

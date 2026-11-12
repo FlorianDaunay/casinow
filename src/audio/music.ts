@@ -6,7 +6,7 @@ import { getAudio } from "./context";
  * The parts are improvised bar by bar from the chords, so the music never loops verbatim.
  */
 
-export type MusicStyle = "salon" | "blackjack" | "roulette" | "machines" | "arcane";
+export type MusicStyle = "salon" | "blackjack" | "roulette" | "machines" | "poker" | "arcane";
 
 type Quality = "maj9" | "maj7#11" | "6" | "m9" | "m7" | "m6" | "9" | "13" | "13sus" | "7b9" | "7alt" | "m7b5" | "dim7";
 interface Chord {
@@ -123,6 +123,19 @@ const STYLES: Record<MusicStyle, Style> = {
     lead: "celesta",
     density: 0.5,
     level: 0.72,
+  },
+  // A smoky ii-V-I ballad in B flat for the poker room.
+  poker: {
+    key: 10,
+    tempo: 82,
+    swing: 0.64,
+    bars: [[c(2, "m9")], [c(7, "13")], [c(0, "maj9")], [c(9, "7b9")], [c(2, "m9")], [c(7, "7alt")], [c(0, "6"), c(9, "7b9")], [c(2, "m7"), c(7, "13sus")]],
+    bass: "walk",
+    comp: "sparse",
+    drums: "brushes",
+    lead: "rhodes",
+    density: 0.4,
+    level: 0.85,
   },
   // Floating, drumless arpeggios for the boutique and the album.
   arcane: {

@@ -11,7 +11,7 @@ export type Emblem = "soleil" | "lune" | "oeil" | "cle" | "couronne" | "pique" |
 export type Table = "blackjack" | "roulette" | "machines" | "poker" | "tout";
 
 /** Tables where atouts can be equipped (the ones that are open). */
-export const PLAYABLE_TABLES = ["blackjack", "roulette", "machines"] as const;
+export const PLAYABLE_TABLES = ["blackjack", "roulette", "machines", "poker"] as const;
 export type PlayableTable = (typeof PLAYABLE_TABLES)[number];
 
 export type Family = "La Maison" | "Les Astres" | "Les Tricheurs" | "Le Banquet" | "Les Horlogers";
@@ -29,7 +29,7 @@ export type Power =
   | { kind: "peek"; uses: number }
   | { kind: "slot" }
   /** Extra share of the net win at one game, optionally on one kind of win only. */
-  | { kind: "game-bonus"; game: "roulette" | "machines"; pct: number; on?: "douzaine" | "chance" | "plein" | "cascade" | "free" }
+  | { kind: "game-bonus"; game: "roulette" | "machines" | "poker"; pct: number; on?: "douzaine" | "chance" | "plein" | "cascade" | "free" | "valets" }
   /** Roulette: share of the losing stakes given back when the zero falls. */
   | { kind: "zero-refund"; pct: number }
   /** Roulette: the first losing spins of a visit are refunded. */
@@ -38,6 +38,12 @@ export type Power =
   | { kind: "wild-boost" }
   /** Machines: one free spin every N paid spins. */
   | { kind: "free-spin-every"; spins: number }
+  /** Video poker: after the draw, exchange one card (per hand). */
+  | { kind: "swap"; uses: number }
+  /** Video poker: losing hands refunded per visit. */
+  | { kind: "poker-refund"; uses: number }
+  /** Video poker: the first hand of a visit holds an ace. */
+  | { kind: "first-ace" }
   | { kind: "future"; text: string };
 
 export interface CardDef {

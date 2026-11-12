@@ -118,3 +118,29 @@ export function machineModifiers(equipped: CardDef[], completed: Family[]): Mach
   }
   return m;
 }
+
+export interface PokerModifiers {
+  /** Extra share of every net win. */
+  winBonus: number;
+  /** Extra share of the payout of a jacks-or-better pair. */
+  pairBonus: number;
+  /** Exchanges after the draw, per hand. */
+  swaps: number;
+  /** Losing hands refunded per visit. */
+  refunds: number;
+  firstAce: boolean;
+}
+
+export function pokerModifiers(equipped: CardDef[], completed: Family[]): PokerModifiers {
+  const m: PokerModifiers = { winBonus: 0, pairBonus: 0, swaps: 0, refunds: 0, firstAce: false };
+  for (const p of powersOf(equipped, completed)) {
+    if (p.kind === "win-bonus" && p.table === "tout") m.winBonus += p.pct / 100;
+    else if (p.kind === "game-bonus" && p.game === "poker") {
+      if (p.on === "valets") m.pairBonus += p.pct / 100;
+      else m.winBonus += p.pct / 100;
+    } else if (p.kind === "swap") m.swaps += p.uses;
+    else if (p.kind === "poker-refund") m.refunds += p.uses;
+    else if (p.kind === "first-ace") m.firstAce = true;
+  }
+  return m;
+}

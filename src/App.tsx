@@ -6,6 +6,7 @@ import { BlackjackScreen } from "./screens/blackjack/BlackjackScreen";
 import { CollectionScreen } from "./screens/collection/CollectionScreen";
 import { Lobby } from "./screens/Lobby";
 import { MachinesScreen } from "./screens/machines/MachinesScreen";
+import { PokerScreen } from "./screens/poker/PokerScreen";
 import { RouletteScreen } from "./screens/roulette/RouletteScreen";
 import { ShopScreen } from "./screens/shop/ShopScreen";
 import { Showcase } from "./screens/Showcase";
@@ -17,6 +18,7 @@ const ROOM_MUSIC: Record<Route, MusicStyle> = {
   blackjack: "blackjack",
   roulette: "roulette",
   machines: "machines",
+  poker: "poker",
   boutique: "arcane",
   collection: "arcane",
 };
@@ -52,6 +54,7 @@ export function App() {
   if (route === "blackjack") return <BlackjackScreen />;
   if (route === "roulette") return <RouletteScreen />;
   if (route === "machines") return <MachinesScreen />;
+  if (route === "poker") return <PokerScreen />;
   if (route === "boutique") return <ShopScreen />;
   if (route === "collection") return <CollectionScreen />;
   if (route === "planche") return <Showcase />;

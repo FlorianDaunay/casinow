@@ -8,7 +8,7 @@ import { DecoRule } from "@/components/Ornaments";
 import { TopBar } from "@/components/TopBar";
 import { dustValue, FORGE_COST } from "@/core/cards/booster";
 import { CATALOG, cardsOfFamily, describePower, FAMILIES, FAMILY_BONUS, TABLE_NAME, usableAt } from "@/core/cards/catalog";
-import { blackjackModifiers, machineModifiers, rouletteModifiers, slotCount } from "@/core/cards/effects";
+import { blackjackModifiers, machineModifiers, pokerModifiers, rouletteModifiers, slotCount } from "@/core/cards/effects";
 import { FINISHES, PLAYABLE_TABLES, type CardDef, type Family, type Finish, type PlayableTable } from "@/core/cards/types";
 import { bestFinish, completedFamilies, equippedCards, totalCopies, useCollection, type Copies } from "@/store/collection";
 import { useProfile } from "@/store/profile";
@@ -37,6 +37,13 @@ function summarize(table: PlayableTable, equipped: CardDef[], completed: Family[
     if (m.onBet.chance) out.push(`+${pct(m.onBet.chance)} sur les chances simples`);
     if (m.zeroRefund) out.push(`${pct(m.zeroRefund)} rendus sur le zéro`);
     if (m.freeLosses) out.push(`${m.freeLosses} tour perdu remboursé`);
+  } else if (table === "poker") {
+    const m = pokerModifiers(equipped, completed);
+    if (m.winBonus) out.push(`+${pct(m.winBonus)} sur les gains`);
+    if (m.pairBonus) out.push(`+${pct(m.pairBonus)} sur les paires de valets`);
+    if (m.swaps) out.push(`${m.swaps} échange par main`);
+    if (m.refunds) out.push(`${m.refunds} main perdue remboursée`);
+    if (m.firstAce) out.push("un As dans la première main");
   } else {
     const m = machineModifiers(equipped, completed);
     if (m.winBonus) out.push(`+${pct(m.winBonus)} sur les gains`);

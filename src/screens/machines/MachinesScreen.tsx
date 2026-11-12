@@ -219,7 +219,7 @@ export function MachinesScreen() {
 
   return (
     <div className="showcase-bg flex min-h-[100dvh] flex-col">
-      <TopBar back title="MACHINES" />
+      <TopBar back title="MACHINES" rules="machines" />
       <div className="flex flex-1 flex-col items-center justify-center px-3 py-4 sm:py-8">
         <div className={`cabinet ${inFree ? "is-free" : ""}`} style={{ "--cell": `${cell}px` } as CSSProperties}>
           {/* Marquee */}

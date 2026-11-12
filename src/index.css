@@ -1212,3 +1212,140 @@
     transform: translateY(110vh) rotate(540deg) scale(var(--s));
   }
 }
+
+/* Video poker ---------------------------------------------------------------- */
+.paytable table {
+  border-collapse: collapse;
+}
+.paytable tr {
+  transition: background 0.3s;
+}
+.paytable tr.is-lit {
+  background: linear-gradient(90deg, transparent, rgb(232 196 108 / 0.22), transparent);
+}
+.paytable tr.is-lit .paytable-name,
+.paytable tr.is-lit .paytable-cell {
+  color: #fff3d0;
+}
+.paytable-name {
+  padding: 0.12rem 0.4rem;
+  font-family: "Josefin Sans", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.62rem;
+  color: rgb(var(--color-text-secondary));
+  white-space: nowrap;
+}
+.paytable-cell {
+  padding: 0.12rem 0.5rem;
+  text-align: right;
+  font-family: "Bodoni Moda", serif;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--color-text-muted));
+}
+.paytable-cell.is-current {
+  color: rgb(var(--color-accent));
+  background: rgb(232 196 108 / 0.07);
+}
+.poker-felt {
+  border-radius: 22px;
+}
+.poker-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.hold-tag {
+  font-size: 0.5rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  color: transparent;
+  transition: all 0.15s;
+}
+.hold-tag.is-on {
+  color: #2a0c0c;
+  background: linear-gradient(100deg, #c6614f, #f0a493, #c6614f);
+  box-shadow: 0 0 10px rgb(224 122 110 / 0.6);
+}
+.poker-card {
+  position: relative;
+  border-radius: 6.4% / 4.6%;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.4),
+    0 10px 20px -8px rgb(0 0 0 / 0.8);
+}
+.poker-card.is-marked {
+  transform: translateY(12px) scale(0.96);
+  box-shadow:
+    0 0 0 2px #e07a6e,
+    0 0 18px rgb(224 122 110 / 0.45);
+}
+.poker-card.is-marked .poker-face > :first-child {
+  filter: brightness(0.45) saturate(0.4);
+  transition: filter 0.2s;
+}
+.replace-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ffd9cf;
+  background: repeating-linear-gradient(135deg, rgb(224 122 110 / 0.16) 0 6px, transparent 6px 12px);
+  animation: result-in 0.25s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.poker-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  animation: card-flip-in 0.38s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+}
+.poker-face.is-back {
+  animation: none;
+}
+@keyframes card-flip-in {
+  from {
+    transform: perspective(600px) rotateY(90deg);
+    opacity: 0.4;
+  }
+}
+.coin-step {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 9999px;
+  font-family: "Bodoni Moda", serif;
+  font-size: 0.95rem;
+  color: rgb(var(--color-text-muted));
+  box-shadow: inset 0 0 0 1px rgb(201 165 90 / 0.35);
+  transition: all 0.15s;
+}
+.coin-step.is-on {
+  color: #1a1308;
+  background: linear-gradient(100deg, #b98a35, #f6dc93, #c99a45);
+  box-shadow: 0 0 10px rgb(232 196 108 / 0.5);
+}
+.coin-step:disabled {
+  opacity: 0.4;
+}
+
+/* Rules sheet ------------------------------------------------------------------ */
+.rules-table {
+  border-collapse: collapse;
+}
+.rules-table td,
+.rules-table th {
+  padding: 0.35rem 0.4rem;
+  border-bottom: 1px solid rgb(201 165 90 / 0.12);
+  vertical-align: middle;
+}
+.rules-table th {
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: 400;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgb(var(--color-text-muted));
+  text-align: right;
+}
